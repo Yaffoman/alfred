@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: yahboom_M3Pro_description
+    relative_path: urdf/M3Pro.urdf
+  srdf:
+    relative_path: config/M3Pro.srdf
+  package_settings:
+    author_name: Yaffoman
+    author_email: yaffoman@gmail.com
+    generated_timestamp: 1766024720
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
