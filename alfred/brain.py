@@ -18,8 +18,8 @@ class Brain(Node):
     def __init__(self):
         super().__init__('brain')
         
-        # Define available commands that the butler understands
-        # Based on robot_controller.py parse_and_execute method
+        # Define available commands that the body understands
+        # Based on body_old.py parse_and_execute method
         self.available_commands = [
             "move forward",
             "go forward",
@@ -62,7 +62,7 @@ class Brain(Node):
             self.text_callback,
             10)
         
-        # Publish LLM responses to butler
+        # Publish LLM responses to body
         self.command_publisher = self.create_publisher(
             String,
             '/alfred/command',
@@ -134,7 +134,7 @@ class Brain(Node):
             if similarity_score >= self.similarity_threshold:
                 return matched_command
             else:
-                self.get_logger().warn(
+                self.get_logger().warning(
                     f'Match below threshold ({similarity_score}% < {self.similarity_threshold}%)'
                 )
                 return None
@@ -143,7 +143,7 @@ class Brain(Node):
 
     def publish_command(self, command):
         """
-        Publish a matched command to the butler.
+        Publish a matched command to the body.
         
         Args:
             command: Command string to publish
@@ -151,7 +151,7 @@ class Brain(Node):
         command_msg = String()
         command_msg.data = command
         self.command_publisher.publish(command_msg)
-        self.get_logger().info(f'Published command to butler: "{command}"')
+        self.get_logger().info(f'Published command to body: "{command}"')
 
     def process_multimodal_input(self):
         """
@@ -172,7 +172,7 @@ class Brain(Node):
         if matched_command:
             self.publish_command(matched_command)
         else:
-            self.get_logger().warn(
+            self.get_logger().warning(
                 f'Could not match multimodal input text: "{self.latest_text}"'
             )
         

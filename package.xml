@@ -12,8 +12,9 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>moveit_msgs</depend>
-  <exec_depend>test_moveit_config</exec_depend>
+  <depend>moveit_ros_planning_interface</depend>
   <exec_depend>ament_index_python</exec_depend>
+
 
   <export>
     <build_type>ament_python</build_type>

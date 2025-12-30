@@ -47,7 +47,7 @@ class Ear(Node):
         if command == "listen":
             # Check if already listening
             if self.is_listening:
-                self.get_logger().warn("Already listening, ignoring command")
+                self.get_logger().warning("Already listening, ignoring command")
                 return
             
             # Start listening in a background thread
@@ -91,10 +91,10 @@ class Ear(Node):
                 msg.data = text
                 self.publisher_.publish(msg)
             else:
-                self.get_logger().warn("No text transcribed from audio")
+                self.get_logger().warning("No text transcribed from audio")
 
         except sr.WaitTimeoutError:
-            self.get_logger().warn("Listening timeout - no audio detected")
+            self.get_logger().warning("Listening timeout - no audio detected")
         except Exception as e:
             self.get_logger().error(f"Error in listener: {e}")
         finally:

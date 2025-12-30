@@ -6,13 +6,13 @@ import time
 
 class AlfredTester(Node):
     """
-    Alfred Tester node that tests the alfred butler node.
+    Alfred Tester node that tests the alfred body node.
 
     Responsibilities:
     - Publishes commands to the alfred/command topic
     - Cycles through a list of commands
     - Publishes the response to the alfred/response topic
-    - No need for camera or voice model, just tests the butler node.
+    - No need for camera or voice model, just tests the body node.
     """
     def __init__(self):
         super().__init__('alfred_tester')

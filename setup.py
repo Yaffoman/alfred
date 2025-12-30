@@ -24,11 +24,10 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "butler = alfred.butler:main",
+            "body = alfred.body:main",
             "test_alfred = alfred.test_alfred:main",
             "ear = alfred.ear:main",
             "brain = alfred.brain:main",
-            "robot_controller = alfred.robot_controller:main",
         ],
     },
 )

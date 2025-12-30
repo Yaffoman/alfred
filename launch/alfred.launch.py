@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import TimerAction
 from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory
-import os
 
 
 def generate_launch_description():
@@ -16,30 +13,15 @@ def generate_launch_description():
     - butler: Executes commands from the brain
     - MoveIt: Motion planning framework
     - RViz2: Visualization tool
+    
+    Note: To prevent DDS conflicts with already-running rviz2/moveit, ensure:
+    1. All processes use the same ROS_DOMAIN_ID (set via environment variable)
+    2. All processes use the same RMW_IMPLEMENTATION (set via environment variable)
+    
+    Example: Before launching, set:
+        export ROS_DOMAIN_ID=0
+        export RMW_IMPLEMENTATION=rmw_fastrtps_cpp  # or rmw_cyclonedx_cpp
     """
-    
-    # Get the path to the test_moveit_config package
-    test_moveit_config_path = get_package_share_directory('test_moveit_config')
-    
-    # Include robot state publisher launch (publishes URDF)
-    rsp_launch_file = os.path.join(
-        test_moveit_config_path,
-        'launch',
-        'rsp.launch.py'
-    )
-    rsp_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(rsp_launch_file)
-    )
-    
-    # Include MoveIt and RViz2 launch file
-    moveit_rviz_launch_file = os.path.join(
-        test_moveit_config_path,
-        'launch',
-        'moveit_rviz.launch.py'
-    )
-    moveit_rviz_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(moveit_rviz_launch_file)
-    )
     
     # Voice model node - converts audio to text
     ear_node = Node(
@@ -60,19 +42,27 @@ def generate_launch_description():
         output='screen'
     )
     
-    # Butler node - executes commands from the brain
-    butler_node = Node(
+    # body node - executes commands from the brain
+    body_node = Node(
         package='alfred',
-        executable='butler',
-        name='alfred_butler',
+        executable='body',
+        name='body',
         output='screen'
     )
     
+    # Add a small delay before starting nodes to let DDS stabilize
+    # This helps prevent type registration conflicts with already-running nodes
+    # The delay gives the DDS middleware time to properly handle type registration
+    delayed_nodes = TimerAction(
+        period=2.0,  # 2 second delay to let DDS stabilize
+        actions=[
+            ear_node,
+            brain_node,
+            body_node,
+        ]
+    )
+    
     return LaunchDescription([
-        rsp_launch,  # Robot state publisher (must come before MoveIt/RViz)
-        moveit_rviz_launch,
-        ear_node,
-        brain_node,
-        butler_node,
+        delayed_nodes,
     ])
 
