@@ -2,25 +2,14 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
-from std_msgs.msg import String
+from std_msgs.msg import String, Float64MultiArray
 
 # MoveIt Action Messages
 from moveit_msgs.action import MoveGroup
-from moveit_msgs.msg import Constraints, JointConstraint, MotionPlanRequest
+from moveit_msgs.msg import Constraints, JointConstraint
 
-# --- CONFIGURATION ---
-JOINT_NAMES = ['arm1_Joint', 'arm2_Joint', 'arm3_Joint', 'arm4_Joiint', 'arm5_Joint']
+from alfred.shared_consts import JOINT_NAMES, NAMED_POSES, GROUP_NAME
 
-NAMED_POSES = {
-    "up":     [0.0, 0.0, 0.0, 0.0, 0.0],
-    "down":   [0.0, -1.5708, 0.0, 0.0, 0.0],
-    "left":   [-1.5708, -1.5708, 0.0, 0.0, 0.0],
-    "right":  [1.5708, -1.5708, 0.0, 0.0, 0.0],
-    "crouch": [0.0, 1.5708, -1.5708, -1.5708, 0.0]
-}
-
-# The MoveIt Planning Group (Must match your SRDF)
-GROUP_NAME = "arm_group"
 
 class Body(Node):
     def __init__(self):
@@ -28,13 +17,18 @@ class Body(Node):
 
         # 1. Subscribe to Commands
         # Listens for "up", "home", etc.
+        self._send_goal_future = None
         self._get_result_future = None
         self.subscription = self.create_subscription(
             String,
             '/alfred/command',
-            self.listener_callback,
+            self.command_callback,
             10)
-
+        self.joints_subscription = self.create_subscription(
+            Float64MultiArray,
+            '/alfred/joints',
+            self.joints_callback,
+            10)
         # 2. Setup Action Client for MoveIt
         self._action_client = ActionClient(self, MoveGroup, '/move_action')
 
@@ -42,17 +36,21 @@ class Body(Node):
         self._action_client.wait_for_server()
         self.get_logger().info("Connected to MoveIt! Ready for commands.")
 
-    def listener_callback(self, msg):
+    def command_callback(self, msg):
         command = msg.data.lower().strip()
         self.get_logger().info(f"Received command: '{command}'")
 
         if command in NAMED_POSES:
-            self.move_to_target(command)
+            joint_values = NAMED_POSES[command]
+            self.move_to_target(joint_values)
         else:
             self.get_logger().warning(f"Unknown pose '{command}'. Available: {list(NAMED_POSES.keys())}")
 
-    def move_to_target(self, pose_name):
-        joint_values = NAMED_POSES[pose_name]
+    def joints_callback(self, joints: Float64MultiArray):
+        self.get_logger().info(f"Received joints: '{joints}'")
+        self.move_to_target(joints.data)
+
+    def move_to_target(self, joint_values: list[float]):
 
         # 1. Build the Goal Message
         goal_msg = MoveGroup.Goal()
@@ -76,7 +74,7 @@ class Body(Node):
         goal_msg.request.goal_constraints.append(constraints)
 
         # 3. Send to Server
-        self.get_logger().info(f"Sending goal '{pose_name}' to MoveIt...")
+        self.get_logger().info(f"Sending goal '{joint_values}' to MoveIt...")
         self._send_goal_future = self._action_client.send_goal_async(goal_msg)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 

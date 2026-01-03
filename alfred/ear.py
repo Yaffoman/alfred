@@ -17,7 +17,7 @@ class Ear(Node):
         # 2. Load Whisper Model (Small or Base is good for Jetson)
         self.get_logger().info("Loading Whisper model... (this may take a moment)")
         self.model = whisper.load_model("base") 
-        self.get_logger().info("Whisper model loaded.")
+        self.get_logger().info("Whisper model loaded!")
 
         # 3. Setup microphone and recognizer
         self.recognizer = sr.Recognizer()
@@ -69,7 +69,7 @@ class Ear(Node):
             with self.microphone as source:
                 self.get_logger().info("Listening... (speak now)")
                 # 'listen' blocks until it hears silence
-                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
+                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=20)
             
             self.get_logger().info("Processing audio...")
             
