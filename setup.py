@@ -14,7 +14,7 @@ setup(
     install_requires=["setuptools", "openai-whisper", "thefuzz"],
     zip_safe=True,
     maintainer="Ethan Lerner",
-    maintainer_email="yaffoman@gmail.com",
+    maintainer_email="nottoday@gmail.com",
     description="TODO: Package description",
     license="TODO: License declaration",
     extras_require={
@@ -30,4 +30,4 @@ setup(
             "brain = alfred.brain:main",
         ],
     },
-)
+
